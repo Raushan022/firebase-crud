@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import firebaseConfigApp from "./lib/firebase-config";
-import { getFirestore, collection, addDoc } from "firebase/firestore";
+import { getFirestore, collection, addDoc, getDocs } from "firebase/firestore";
+import "remixicon/fonts/remixicon.css";
 
 const db = getFirestore(firebaseConfigApp);
 
@@ -12,6 +13,16 @@ const App = () => {
     joiningDate: "",
   };
   const [employees, setEmployees] = useState(employeeModel);
+  const [isEmpty, setIsEmpty] = useState(false);
+
+  useEffect(() => {
+    const req = async () => {
+      const allEmployeesData = await getDocs(collection(db, "employeesData"));
+      setIsEmpty(allEmployeesData.empty);
+    };
+
+    req();
+  }, []);
 
   const handleChange = (e) => {
     const input = e.target;
@@ -29,6 +40,7 @@ const App = () => {
       //collection also takes two parameters, first db ad then collection name
       //and since this is server task so it will take time hence we will make async function and await it
       await addDoc(collection(db, "employeesData"), employees);
+      setIsEmpty(false);
 
       new Swal({
         icon: "success",
@@ -99,8 +111,13 @@ const App = () => {
             </button>
           </form>
         </div>
-        <div>
-          <h1>testing</h1>
+        <div className="bg-rose-400">
+          {isEmpty && (
+            <div className="flex flex-col items-center">
+              <i className="ri-u-disk-line text-3xl text-gray-600"></i>
+              <h1 className="text-3xl text-gray-600 ">Empty</h1>
+            </div>
+          )}
         </div>
       </div>
     </div>
