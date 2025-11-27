@@ -1,4 +1,5 @@
 import { useState } from "react";
+import firebaseConfigApp from "./lib/firebase-config";
 
 const App = () => {
   const [employees, setEmployees] = useState({
