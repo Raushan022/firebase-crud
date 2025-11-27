@@ -1,12 +1,17 @@
 import { useState } from "react";
+import Swal from "sweetalert2";
 import firebaseConfigApp from "./lib/firebase-config";
+import { getFirestore, collection, addDoc } from "firebase/firestore";
+
+const db = getFirestore(firebaseConfigApp);
 
 const App = () => {
-  const [employees, setEmployees] = useState({
+  const employeeModel = {
     employeeName: "",
     salary: "",
     joiningDate: "",
-  });
+  };
+  const [employees, setEmployees] = useState(employeeModel);
 
   const handleChange = (e) => {
     const input = e.target;
@@ -16,10 +21,31 @@ const App = () => {
     setEmployees({ ...employees, [name]: value });
   };
 
-  const createEmployee = (e) => {
-    e.preventDefault();
-    console.log(employees);
+  const createEmployee = async (e) => {
+    try {
+      e.preventDefault();
+
+      //addDoc takes two parameters, first collection function and another the data that we want to store in db
+      //collection also takes two parameters, first db ad then collection name
+      //and since this is server task so it will take time hence we will make async function and await it
+      await addDoc(collection(db, "employeesData"), employees);
+
+      new Swal({
+        icon: "success",
+        title: "Employee created !!",
+      });
+    } catch (err) {
+      new Swal({
+        icon: "error",
+        title: "Failed",
+        text: err.message,
+      });
+    } finally {
+      //clear fields after employee creation
+      setEmployees(employeeModel);
+    }
   };
+
   return (
     <div className="flex flex-col items-center gap-16">
       <h1 className="text-5xl font-bold">
@@ -34,6 +60,7 @@ const App = () => {
               </label>
               <input
                 onChange={handleChange}
+                value={employees.employeeName}
                 type="text"
                 required
                 name="employeeName"
@@ -46,6 +73,7 @@ const App = () => {
               <label className="font-semibold text-lg mb-2">Salary</label>
               <input
                 onChange={handleChange}
+                value={employees.salary}
                 type="number"
                 required
                 name="salary"
@@ -58,6 +86,7 @@ const App = () => {
               <label className="font-semibold text-lg mb-2">Joining Date</label>
               <input
                 onChange={handleChange}
+                value={employees.joiningDate}
                 type="date"
                 required
                 name="joiningDate"
