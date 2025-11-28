@@ -8,6 +8,7 @@ import {
   getDocs,
   doc,
   deleteDoc,
+  updateDoc,
 } from "firebase/firestore";
 import "remixicon/fonts/remixicon.css";
 
@@ -23,6 +24,7 @@ const App = () => {
   const [isEmpty, setIsEmpty] = useState(false);
   const [isUpdated, setIsUpdated] = useState(false);
   const [employeeData, setEmployeeData] = useState([]);
+  const [edit, setEdit] = useState(null);
 
   useEffect(() => {
     const req = async () => {
@@ -83,6 +85,22 @@ const App = () => {
     setIsUpdated(!isUpdated);
   };
 
+  const editEmployee = (item) => {
+    // console.log(item);
+    setEdit(item);
+    setEmployees(item);
+  };
+
+  const saveEmployee = async (e) => {
+    e.preventDefault();
+    // console.log(edit);
+    const ref = doc(db, "employeesData", edit.uid);
+    await updateDoc(ref, employees);
+    setIsUpdated(!isUpdated);
+    setEdit(null);
+    setEmployees(employeeModel);
+  };
+
   return (
     <div className="flex flex-col items-center gap-16">
       <h1 className="text-5xl font-bold">
@@ -90,7 +108,10 @@ const App = () => {
       </h1>
       <div className="flex w-10/12 gap-16">
         <div className="w-[400px]">
-          <form className="space-y-6" onSubmit={createEmployee}>
+          <form
+            className="space-y-6"
+            onSubmit={edit ? saveEmployee : createEmployee}
+          >
             <div className="flex flex-col">
               <label className="font-semibold text-lg mb-2">
                 Employee Name
@@ -131,9 +152,15 @@ const App = () => {
               />
             </div>
 
-            <button className="bg-green-500 px-6 py-3 rounded font-semibold text-white">
-              CREATE
-            </button>
+            {edit ? (
+              <button className="bg-rose-500 px-6 py-3 rounded font-semibold text-white">
+                SAVE
+              </button>
+            ) : (
+              <button className="bg-green-500 px-6 py-3 rounded font-semibold text-white">
+                CREATE
+              </button>
+            )}
           </form>
         </div>
         <div className=" flex-1">
@@ -164,7 +191,10 @@ const App = () => {
                   <td>{item.joiningDate}</td>
                   <td>
                     <div className="space-x-2">
-                      <button className="w-8 h-8 bg-indigo-600 text-white rounded-full hover:cursor-pointer">
+                      <button
+                        className="w-8 h-8 bg-indigo-600 text-white rounded-full hover:cursor-pointer"
+                        onClick={() => editEmployee(item)}
+                      >
                         <i className="ri-file-edit-line"></i>
                       </button>
 
