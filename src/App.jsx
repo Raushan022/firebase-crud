@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import firebaseConfigApp from "./lib/firebase-config";
-import { getFirestore, collection, addDoc, getDocs } from "firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  deleteDoc,
+} from "firebase/firestore";
 import "remixicon/fonts/remixicon.css";
 
 const db = getFirestore(firebaseConfigApp);
@@ -14,6 +21,7 @@ const App = () => {
   };
   const [employees, setEmployees] = useState(employeeModel);
   const [isEmpty, setIsEmpty] = useState(false);
+  const [isUpdated, setIsUpdated] = useState(false);
   const [employeeData, setEmployeeData] = useState([]);
 
   useEffect(() => {
@@ -25,13 +33,14 @@ const App = () => {
       let tmp = [];
       allEmployeesData.forEach((doc) => {
         const document = doc.data();
+        document.uid = doc.id;
         tmp.push(document);
       });
       setEmployeeData(tmp);
     };
 
     req();
-  }, []);
+  }, [isUpdated]);
 
   const handleChange = (e) => {
     const input = e.target;
@@ -50,7 +59,7 @@ const App = () => {
       //and since this is server task so it will take time hence we will make async function and await it
       await addDoc(collection(db, "employeesData"), employees);
       setIsEmpty(false);
-      // setEmployeeData(...employeeData, employees);
+      setIsUpdated(!isUpdated);
 
       new Swal({
         icon: "success",
@@ -66,6 +75,12 @@ const App = () => {
       //clear fields after employee creation
       setEmployees(employeeModel);
     }
+  };
+
+  const deleteEmployee = async (id) => {
+    const ref = doc(db, "employeesData", id);
+    await deleteDoc(ref);
+    setIsUpdated(!isUpdated);
   };
 
   return (
@@ -149,11 +164,14 @@ const App = () => {
                   <td>{item.joiningDate}</td>
                   <td>
                     <div className="space-x-2">
-                      <button className="w-8 h-8 bg-indigo-600 text-white rounded-full">
+                      <button className="w-8 h-8 bg-indigo-600 text-white rounded-full hover:cursor-pointer">
                         <i className="ri-file-edit-line"></i>
                       </button>
 
-                      <button className="w-8 h-8 bg-pink-600 text-white rounded-full">
+                      <button
+                        className="w-8 h-8 bg-pink-600 text-white rounded-full hover:cursor-pointer"
+                        onClick={() => deleteEmployee(item.uid)}
+                      >
                         <i className="ri-delete-bin-6-line"></i>
                       </button>
                     </div>
